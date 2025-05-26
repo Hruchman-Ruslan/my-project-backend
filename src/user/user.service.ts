@@ -3,9 +3,11 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { sign } from 'jsonwebtoken';
+import { compare } from 'bcrypt';
 import { UserEntity } from './user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UserResponseInterface } from './types/userResponse.interface';
+import { LoginUserDto } from './dto/loginUser.dto';
 
 @Injectable()
 export class UserService {
@@ -20,12 +22,12 @@ export class UserService {
       errors: {},
     };
 
-    const userByEmail = await this.userRepository.findOne({
-      where: { email: createUserDto.email },
-    });
-    const userByUsername = await this.userRepository.findOne({
-      where: { username: createUserDto.username },
-    });
+    const [userByEmail, userByUsername] = await Promise.all([
+      this.userRepository.findOne({ where: { email: createUserDto.email } }),
+      this.userRepository.findOne({
+        where: { username: createUserDto.username },
+      }),
+    ]);
 
     if (userByEmail) {
       errorResponse.errors['email'] = 'has already been taken';
@@ -40,6 +42,38 @@ export class UserService {
 
     const newUser = this.userRepository.create(createUserDto);
     return await this.userRepository.save(newUser);
+  }
+
+  async signIn(loginUserDto: LoginUserDto): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({
+      where: { email: loginUserDto.email },
+      select: ['id', 'username', 'email', 'password'],
+    });
+
+    console.log('user', user); // delete later
+
+    if (!user) {
+      throw new HttpException(
+        'Credentials are not valid',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    const isPasswordCorrect = await compare(
+      loginUserDto.password,
+      user.password,
+    );
+
+    if (!isPasswordCorrect) {
+      throw new HttpException(
+        'Credentials are not valid',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    delete (user as Partial<UserEntity>).password;
+
+    return user;
   }
 
   generateJwt(user: UserEntity): string {
