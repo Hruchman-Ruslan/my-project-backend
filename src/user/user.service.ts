@@ -50,8 +50,6 @@ export class UserService {
       select: ['id', 'username', 'email', 'password'],
     });
 
-    console.log('user', user); // delete later
-
     if (!user) {
       throw new HttpException(
         'Credentials are not valid',
@@ -74,6 +72,12 @@ export class UserService {
     delete (user as Partial<UserEntity>).password;
 
     return user;
+  }
+
+  findById(id: number): Promise<UserEntity | null> {
+    return this.userRepository.findOne({
+      where: { id },
+    });
   }
 
   generateJwt(user: UserEntity): string {

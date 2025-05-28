@@ -1,8 +1,17 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Post,
+  Req,
+} from '@nestjs/common';
 import { CreateUserDto } from '@app/user/dto/createUser.dto';
 import { UserService } from './user.service';
 import { LoginUserDto } from './dto/loginUser.dto';
 import { UserResponseInterface } from './types/userResponse.interface';
+import { ExpressRequest } from '@app/types/expressRequest.interface';
 
 @Controller('auth')
 export class UserController {
@@ -22,5 +31,15 @@ export class UserController {
   ): Promise<UserResponseInterface> {
     const user = await this.userService.signIn(loginUserDto);
     return this.userService.buildUserResponse(user);
+  }
+
+  @Get('user')
+  async getCurrentUser(
+    @Req() request: ExpressRequest,
+  ): Promise<UserResponseInterface> {
+    if (!request.user)
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED); // improve later
+
+    return this.userService.buildUserResponse(request.user);
   }
 }
