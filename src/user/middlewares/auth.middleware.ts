@@ -7,13 +7,18 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NextFunction, Response } from 'express';
-import { JwtPayload, verify } from 'jsonwebtoken';
+import { verify } from 'jsonwebtoken';
+import { UserService } from '../user.service';
+import { JwtUserPayload } from '@app/types/jwtUserPayload.interface';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  use(req: ExpressRequest, _: Response, next: NextFunction) {
+  async use(req: ExpressRequest, _: Response, next: NextFunction) {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
@@ -31,8 +36,9 @@ export class AuthMiddleware implements NestMiddleware {
       );
 
     try {
-      const decoded = verify(token, jwtSecret) as JwtPayload;
-      console.log(decoded);
+      const decoded = verify(token, jwtSecret) as JwtUserPayload;
+      const user = await this.userService.findById(decoded.id);
+      req.user = user;
     } catch {
       req.user = null;
     }
