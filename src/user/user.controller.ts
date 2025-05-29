@@ -1,17 +1,10 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  Post,
-  Req,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { CreateUserDto } from '@app/user/dto/createUser.dto';
 import { UserService } from './user.service';
 import { LoginUserDto } from './dto/loginUser.dto';
 import { UserResponseInterface } from './types/userResponse.interface';
-import { ExpressRequest } from '@app/types/expressRequest.interface';
+import { User } from './decorators/user.decorator';
+import { UserEntity } from './user.entity';
 
 @Controller('auth')
 export class UserController {
@@ -34,12 +27,7 @@ export class UserController {
   }
 
   @Get('user')
-  async getCurrentUser(
-    @Req() request: ExpressRequest,
-  ): Promise<UserResponseInterface> {
-    if (!request.user)
-      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED); // improve later
-
-    return this.userService.buildUserResponse(request.user);
+  getCurrentUser(@User() user: UserEntity): UserResponseInterface {
+    return this.userService.buildUserResponse(user);
   }
 }
