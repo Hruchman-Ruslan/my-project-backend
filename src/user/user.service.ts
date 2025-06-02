@@ -8,6 +8,7 @@ import { UserEntity } from './user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UserResponseInterface } from './types/userResponse.interface';
 import { LoginUserDto } from './dto/loginUser.dto';
+import { UpdateUserDto } from './dto/updateUser.dto';
 
 @Injectable()
 export class UserService {
@@ -78,6 +79,22 @@ export class UserService {
     return this.userRepository.findOne({
       where: { id },
     });
+  }
+
+  async updateUser(
+    userId: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    Object.assign(user, updateUserDto);
+    return this.userRepository.save(user);
   }
 
   generateJwt(user: UserEntity): string {
