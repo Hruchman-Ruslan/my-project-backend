@@ -9,7 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
 
-  const port = app.get(ConfigService).get<number>('PORT') ?? 3000;
+  const port = app.get(ConfigService).get<number>('PORT') ?? 3030;
   await app.listen(port);
 }
 
