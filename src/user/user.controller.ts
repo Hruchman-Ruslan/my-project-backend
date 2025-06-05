@@ -12,7 +12,7 @@ import { UpdateUserDto } from './dto/updateUser.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('signUp')
+  @Post('sign-up')
   async signUp(
     @Body() createUserDto: CreateUserDto,
   ): Promise<UserResponseInterface> {
@@ -20,7 +20,7 @@ export class UserController {
     return this.userService.buildUserResponse(user);
   }
 
-  @Post('signIn')
+  @Post('sign-in')
   async signIn(
     @Body() loginUserDto: LoginUserDto,
   ): Promise<UserResponseInterface> {
