@@ -15,6 +15,9 @@ export class UserEntity {
   @Column({ select: false })
   password: string;
 
+  @Column({ nullable: true })
+  avatar: string;
+
   @BeforeInsert()
   async hashPassword() {
     this.password = await hash(this.password, 10);
