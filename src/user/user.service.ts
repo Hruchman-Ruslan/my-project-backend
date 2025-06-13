@@ -9,6 +9,7 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UserResponseInterface } from './types/userResponse.interface';
 import { LoginUserDto } from './dto/loginUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { CloudinaryService } from '@app/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UserService {
@@ -16,6 +17,7 @@ export class UserService {
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     private readonly configService: ConfigService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async signUp(createUserDto: CreateUserDto): Promise<UserEntity> {
@@ -83,7 +85,7 @@ export class UserService {
 
   async updateUser(
     userId: number,
-    updateUserDto: UpdateUserDto,
+    updateUserDto: UpdateUserDto & { avatarFile?: Express.Multer.File },
   ): Promise<UserEntity> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
@@ -91,6 +93,13 @@ export class UserService {
 
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (updateUserDto.avatarFile) {
+      const avatarUrl = await this.cloudinaryService.uploadImage(
+        updateUserDto.avatarFile,
+      );
+      user.avatar = avatarUrl;
     }
 
     Object.assign(user, updateUserDto);
@@ -110,7 +119,10 @@ export class UserService {
   buildUserResponse(user: UserEntity): UserResponseInterface {
     return {
       user: {
-        ...user,
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
         token: this.generateJwt(user),
       },
     };
