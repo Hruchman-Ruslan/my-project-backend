@@ -10,6 +10,7 @@ import { UserResponseInterface } from './types/userResponse.interface';
 import { LoginUserDto } from './dto/loginUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { CloudinaryService } from '@app/cloudinary/cloudinary.service';
+import { UserGateway } from './user.gateway';
 
 @Injectable()
 export class UserService {
@@ -18,6 +19,7 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
     private readonly configService: ConfigService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly userGateway: UserGateway,
   ) {}
 
   async signUp(createUserDto: CreateUserDto): Promise<UserEntity> {
@@ -103,7 +105,11 @@ export class UserService {
     }
 
     Object.assign(user, updateUserDto);
-    return this.userRepository.save(user);
+    const updatedUser = await this.userRepository.save(user);
+
+    this.userGateway.notifyUserUpdated(updatedUser);
+
+    return updatedUser;
   }
 
   generateJwt(user: UserEntity): string {
