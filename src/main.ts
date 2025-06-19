@@ -15,6 +15,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: frontendUrl,
+    credentials: true,
   });
 
   await app.listen(port);

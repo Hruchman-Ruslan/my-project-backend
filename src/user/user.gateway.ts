@@ -2,7 +2,12 @@ import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { UserEntity } from './user.entity';
 import { Server } from 'socket.io';
 
-@WebSocketGateway()
+@WebSocketGateway({
+  cors: {
+    origin: 'http://localhost:3000', // how to use configService in gateway😠
+    credentials: true,
+  },
+})
 export class UserGateway {
   @WebSocketServer()
   server: Server;
